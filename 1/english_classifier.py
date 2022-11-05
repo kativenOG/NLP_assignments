@@ -31,16 +31,16 @@ if __name__ == "__main__":
         tokenized = custom_tokenizer.tokenize(testing_text)
 
         # Chunking: 
-        # The process of natural language processing used to identify parts of speech and short phrases present in a given sentence.
-        for token in tokenized: 
-            words = nltk.word_tokenize(token)
-            tagged_POS= nltk.pos_tag(words) # First we need to tag parts of speech ( TAG POS )
-            # r stands for Regex, RB is an adverb, VB verb, NNP proper noun 
-            chunkGram = r"""Chunk: {<RB.?>*<VB.?>*<NNP>+<NN>?}"""  # RB followed by anything (includes all adverbs forms) then followd by a form of a verb , then a proper noun, then a noun 
-            chunkParser = nltk.RegexpParser(chunkGram)
-            chunked = chunkParser.parse(tagged_POS)
-            print(chunked)
-            chunked.draw()
+        # The process of natural language processing used to identify parts of speech and short phrases present in a given sentence. DIAMO UNA STRUTTURA GENERALE ALLA FRASE CHE VOGLIAMO 
+        # for token in tokenized: 
+        #     words = nltk.word_tokenize(token)
+        #     tagged_POS= nltk.pos_tag(words) # First we need to tag parts of speech ( TAG POS )
+        #     # r stands for Regex, RB is an adverb, VB verb, NNP proper noun 
+        #     chunkGram = r"""Chunk: {<RB.?>*<VB.?>*<NNP>+<NN>?}"""  # RB followed by anything (includes all adverbs forms) then followd by a form of a verb , then a proper noun, then a noun 
+        #     chunkParser = nltk.RegexpParser(chunkGram)
+        #     chunked = chunkParser.parse(tagged_POS)
+        #     print(chunked)
+        #     chunked.draw()
 
         # Stop Words Elimination
         stopped = []
@@ -48,7 +48,6 @@ if __name__ == "__main__":
         for word in tokenized:
             if word.casefold() not in stop_words:
                 stopped.append(word)
-        # real_worf = [w for w in worf_quote if not w in stop_words]
 
         # Stemming:
         stemmed= [stemmer.stem(word) for word in stopped]
@@ -60,4 +59,3 @@ if __name__ == "__main__":
 
     except Exception as e:
         print(str(e))
-
