@@ -1,2 +1,6 @@
 nltk==3.7
 numpy
+pandas
+asyncio
+sklearn
+matplotlib
