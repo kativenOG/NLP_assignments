@@ -44,6 +44,7 @@ async def tap_training(text):
                 if word.casefold() not in stop_words:
                     stopped.append(word)
 
+            # MISSING CHUNKING !!!
 
             # Stemming:
             stemmed= [stemmer.stem(word) for word in stopped]
@@ -69,7 +70,6 @@ def feature_estractor(document,top_words):
     # document_words = set(document)
     # Ususal TAP pipeline (tokenization,stop words elimination, stemming and lemmatization )
     processed_document = set()
-    # for token in document:
     # Tokenization 
     tokenizer = RegexpTokenizer(r"[A-zÀ-ú ]+") 
     words = tokenizer.tokenize(document) # we tokenize to words the alredy punktokenized sentences !
@@ -81,7 +81,7 @@ def feature_estractor(document,top_words):
     for word in words:
         if word.casefold() not in stop_words:
             stopped.append(word)
-
+    # MISSING CHUNKING  !!!
     # Stemming:
     stemmed= [stemmer.stem(word) for word in stopped]
     # Standard Lemmatizing 
@@ -128,7 +128,7 @@ async def main():
         raw_data = [] 
         for [text,ids] in documents:
             raw_data.append(text)
-            print(id)
+            # print(ids)
         top_words = await tap_training(raw_data) # deve diventare tutte le parole sommate dei tue testi. 
         if top_words == "err": 
             print("ERROR!")
@@ -147,7 +147,7 @@ async def main():
 
     
             print("Testing and Metrics: ")
-            print(nltk.classify.accuracy(classifier, test_set))
+            print("Accuracy:",nltk.classify.accuracy(classifier, test_set))
 
             refsets =  collections.defaultdict(set)
             testsets = collections.defaultdict(set)
@@ -157,7 +157,6 @@ async def main():
                 result = classifier.classify(feats)
                 testsets[result].add(i)
                 i+=1
-
             print( 'Precision:', precision(refsets['English'], testsets['English']) )
             print( 'Recall:', recall(refsets['English'], testsets['English']) )
             classifier.show_most_informative_features(35)
