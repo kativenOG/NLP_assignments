@@ -30,7 +30,7 @@ async def tap_training(text):
         for data in text: 
 
             # Tokenization 
-            tokenizer = RegexpTokenizer(r"[A-zÀ-ú ]+") 
+            tokenizer = RegexpTokenizer(r"[A-zÀ-ú]+") 
             words = tokenizer.tokenize(data) # we tokenize to words the alredy punktokenized sentences !
             # r"[A-zÀ-ú ]+": rimuove numeri, caratteri speciali e tiene solo le lettere e spazi, anche accentate!  
             # r"\w+": keeps only alphanumeric characters, removing all punctuation :^) 
