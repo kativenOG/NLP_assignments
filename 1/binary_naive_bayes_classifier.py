@@ -1,5 +1,9 @@
-#  CHAPTER 6 AND 7 OF NLTK BOOK 
+# NEW FILE !
+# Versione che fa un tap training per ogni documento 
+# e poi passa i dati già modificati al feature estractor 
+
 #************************ IMPORTS ************************#
+import string
 import nltk
 import asyncio
 import random
@@ -14,9 +18,8 @@ from nltk.corpus import europarl_raw
 from nltk.corpus import stopwords
 from nltk.metrics import ConfusionMatrix
 #********************************************************#
-from nltk.chunk.util import conlltags2tree
 from nltk.metrics.scores import (precision, recall)
-from nltk.tokenize import RegexpTokenizer, sent_tokenize, word_tokenize#,sent_tokenize,PunktSentenceTokenizer is tokenizer with a unsupervised machine learning program beneath it 
+from nltk.tokenize import RegexpTokenizer, sent_tokenize#,sent_tokenize,PunktSentenceTokenizer is tokenizer with a unsupervised machine learning program beneath it 
 from nltk.probability import FreqDist
 from nltk.stem import PorterStemmer 
 stemmer = PorterStemmer()  
@@ -24,94 +27,50 @@ from nltk.stem import WordNetLemmatizer
 lemmatizer = WordNetLemmatizer()
 #********************************************************#
 
-# Chunker that uses bigrams 
-class BigramChunker(nltk.ChunkParserI):
-    def __init__(self, train_sents):
-        train_data = [[(t,c) for w,t,c in nltk.chunk.tree2conlltags(sent)] for sent in train_sents]
-        self.tagger = nltk.BigramTagger(train_data)
-
-    def parse(self, sentence):
-        pos_tags = [pos for (word,pos) in sentence]
-        tagged_pos_tags = self.tagger.tag(pos_tags)
-        chunktags = [chunktag for (pos, chunktag) in tagged_pos_tags]
-        conlltags = [(word, pos, chunktag) for ((word,pos),chunktag) in zip(sentence, chunktags)]
-        return conlltags2tree(conlltags)
-
-# TAP: Text Analysis Pipeline 
-async def tap_training(text,chunker = None):
+def tap_training(text,fdist,chunker = None):
 
     try:
-        
         # BOW: bag of words, for calculating the top 2000 used words in the already greatly reduced Vocabulary
-        fdist = FreqDist() 
+        transformed_document = [] 
         for data in tqdm(text): 
             # Tokenization is sentences 
             sents = sent_tokenize(data)
             for sent in sents:
-                # Tokenization is words 
-                # tokenizer = RegexpTokenizer(r"\w+") 
-                # words = tokenizer.tokenize(sent) # we tokenize to words the alredy punktokenized sentences !
-                words = word_tokenize(sent) 
-                # r"[A-zÀ-ú ]+": rimuove numeri, caratteri speciali e tiene solo le lettere e spazi, anche accentate!  
 
-                # Stop Words Elimination
-                stopped = []
-                stop_words = set(stopwords.words("english"))  # a set containing all the English stopWords
-                # stop_words.add(word for word in stopwords.words("french"))
-                stop_words.add(word for word in stopwords.words("dutch"))
-                for word in words:
-                    if word.casefold() not in stop_words:
-                        stopped.append(word)
-
-                # MISSING CHUNKING !!!
-
+                # Tokenizing words 
+                tokenizer = RegexpTokenizer(r"\w+") 
+                words = tokenizer.tokenize(sent) # we tokenize to words the alredy punktokenized sentences !
                 # Stemming:
-                stemmed= [stemmer.stem(word) for word in stopped]
-
-                # Standard Lemmatizing 
+                stemmed= [stemmer.stem(word) for word in words]
+                # Standard Lemmatiziation
                 lemmatized = [lemmatizer.lemmatize(word) for word in stemmed]
-
-                # Counting the words that we already lemmatized in the BOW counter 
+                # Counting the words that we already lemmatized for the BOW counter 
                 for word in lemmatized:
+                    transformed_document.append(word) # returning the document to 
                     fdist[word.lower()] += 1 # adding to the world count for BOW 
-                # fdist= FreqDist(w.lower() for w in lemmatized)
 
         print("\n")
-        return list(fdist)[:2000]
+        return list(fdist)[:2000], transformed_document
 
     except Exception as e:
         print(str(e))
         return "err"
 
-
-
 def feature_estractor(document,top_words,chunker = None):
-    # document_words = set(document)
+
     # Ususal TAP pipeline (tokenization,stop words elimination, stemming and lemmatization )
     processed_document = set()
     # Tokenization in sentences
     sents = sent_tokenize(document)
     for sent in sents:
+
         # Tokenization in words 
-        # tokenizer = RegexpTokenizer(r"\w+") 
-        # words = tokenizer.tokenize(sent) # we tokenize to words the alredy punktokenized sentences !
-        words = word_tokenize(sent) 
-
-        # Stop Words 
-        stopped = []
-        stop_words = set(stopwords.words("english"))  # a set containing all the English stopWords
-        # stop_words.add(word for word in stopwords.words("french"))
-        stop_words.add(word for word in stopwords.words("dutch"))
-        for word in words:
-            if word.casefold() not in stop_words:
-                stopped.append(word)
-
-        # MISSING CHUNKING  !!!
+        tokenizer = RegexpTokenizer(r"\w+") 
+        words = tokenizer.tokenize(sent) # we tokenize to words the alredy punktokenized sentences !
         # Stemming:
-        stemmed= [stemmer.stem(word) for word in stopped]
+        stemmed= [stemmer.stem(word) for word in words]
         # Standard Lemmatizing 
         lemmatized = [lemmatizer.lemmatize(word) for word in stemmed]
-        
         for word in lemmatized:
             processed_document.add(word)
 
@@ -122,7 +81,6 @@ def feature_estractor(document,top_words,chunker = None):
 
 
 async def main():
-
     try: 
 
         print("Loading NLTK Data ")
@@ -130,10 +88,11 @@ async def main():
         # for training the model is going to use the Europarlamentar english corpora
         # doing collage of Europarlamentar english and then Europarlamentar in french and dutch for non-english text
         en_ids = [fileid for fileid in europarl_raw.english.fileids()]
-        dutch_ids = [fileid for fileid in europarl_raw.dutch.fileids()]
         fr_ids = [fileid for fileid in europarl_raw.french.fileids()]
+        dutch_ids = [fileid for fileid in europarl_raw.dutch.fileids()]
+        # fr_ids = fr_ids[math.floor(len(fr_ids)/3):]
         # en_ids = en_ids[math.floor(len(en_ids)/3):]
-
+        # dutch_ids = dutch_ids[math.floor(len(dutch_ids)/3):]
 
         # Loading ENGLISH corpora and respective label 
         documents= [(europarl_raw.english.raw(fileid), "English") # Maybe remove list() and use .words
@@ -151,7 +110,9 @@ async def main():
         for [text,ids] in documents:
             raw_data.append(text)
 
-        top_words = await tap_training(raw_data) # deve diventare tutte le parole sommate dei tue testi. 
+        fdist = FreqDist() 
+
+        top_words = tap_training(raw_data,fdist) # deve diventare tutte le parole sommate dei tue testi. 
 
         if top_words == "err": 
             print("ERROR!")
@@ -181,7 +142,7 @@ async def main():
             print("Accuracy:",nltk.classify.accuracy(classifier, test_set))
             print( 'Precision:', precision(refsets['English'], testsets['English']) )
             print( 'Recall:', recall(refsets['English'], testsets['English']) )
-            print(cm.pretty_format(sort_by_count=True, show_percents=True, truncate=9))
+            print(cm)
             classifier.show_most_informative_features(35)
 
             print("Extra test: ")
@@ -201,4 +162,15 @@ async def main():
         print(str(e))
         return "err"
 
+
 asyncio.run(main())
+
+# Stop Words removal 
+# stopped = []
+# stop_words = set(stopwords.words("english"))  # a set containing all the English stopWords
+# stop_words.add(word for word in stopwords.words("french"))
+# stop_words.add(word for word in stopwords.words("dutch"))
+# for word in words:
+#     if word.casefold() not in stop_words:
+#         stopped.append(word)
+
