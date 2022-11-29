@@ -37,6 +37,7 @@ class BigramChunker(nltk.ChunkParserI):
         conlltags = [(word, pos, chunktag) for ((word,pos),chunktag) in zip(sentence, chunktags)]
         return conlltags2tree(conlltags)
 
+
 # TAP: Text Analysis Pipeline 
 async def tap_training(text,chunker = None):
 
@@ -122,7 +123,6 @@ def feature_estractor(document,top_words,chunker = None):
 
 
 async def main():
-
     try: 
 
         print("Loading NLTK Data ")
