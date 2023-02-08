@@ -2,8 +2,7 @@
 ## [Project Github Repository](https://github.com/kativenOG/NLP_assignments)
 ## Project Completion State:
 - [x] First Assignment (in directory **1**)
-- [ ] Second Assignment (in directory **2**)
-- [ ] Third Assignment (in directory **3**)
+- [x] Second Assignment (in directory **2**)
 ## Installation:
 Assignments are in the form of jupyter notebooks, they contain both the code and all the discussion on the project assigment and result.</br>
 There are 3 ways to install the dependencies and run the notebooks on your local machine:
